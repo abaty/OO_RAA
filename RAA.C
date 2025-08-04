@@ -414,9 +414,9 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   CMS_lumi( canv2, 0,11);
   canv2->RedrawAxis();
 
-  canv2->SaveAs("plots/Figure_002_noQuenching.pdf");
-  canv2->SaveAs("plots/Figure_002_noQuenching.png");
-  canv2->SaveAs("plots/Figure_002_noQuenching.C");
+  canv2->SaveAs("plots/Figure_003-a.pdf");
+  canv2->SaveAs("plots/Figure_003-a.png");
+  canv2->SaveAs("plots/Figure_003-a.C");
 
 
   //***************************************************************** */
@@ -455,7 +455,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   CMS_lumi( canv2, 0,11);
   canv2->RedrawAxis();
 
-  canv2->SaveAs("plots/Figure_002_withQuenching.pdf");
-  canv2->SaveAs("plots/Figure_002_withQuenching.png");
-  canv2->SaveAs("plots/Figure_002_withQuenching.C");
+  canv2->SaveAs("plots/Figure_003-b.pdf");
+  canv2->SaveAs("plots/Figure_003-b.png");
+  canv2->SaveAs("plots/Figure_003-b.C");
 }
