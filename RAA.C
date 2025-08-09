@@ -524,11 +524,31 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
 
   //plot with no-quenching baselines
   //redraw result
-  /*
-  ppSpecD->GetXaxis()->SetRangeUser(2,120);
-  ppSpecD->GetYaxis()->SetRangeUser(0.5,1.5);
-  ppSpecD->Draw();
-  b->Draw("same");
+  
+  TH1D * ppSpecD3 = new TH1D("specDummy1","",3,2.2,120);
+  ppSpecD3->GetYaxis()->SetTitle("R_{AA}");
+  ppSpecD3->GetYaxis()->SetTitleOffset(1.4);
+  ppSpecD3->GetYaxis()->SetTitleSize(0.045);
+  ppSpecD3->GetYaxis()->SetLabelSize(0.04);
+  ppSpecD3->GetYaxis()->CenterTitle();
+  ppSpecD3->GetYaxis()->SetLabelOffset(0.004);
+  ppSpecD3->GetYaxis()->SetRangeUser(0,2.0);
+  ppSpecD3->GetXaxis()->SetRangeUser(0.4,500);
+  ppSpecD3->GetXaxis()->SetTitleFont(42);
+  ppSpecD3->GetXaxis()->SetTitle("p_{T} (GeV)");
+  ppSpecD3->GetXaxis()->SetTitleSize(0.045);
+  ppSpecD3->GetXaxis()->SetLabelSize(0.04);
+  ppSpecD3->GetXaxis()->SetTitleOffset(1.2);
+  ppSpecD3->GetXaxis()->CenterTitle();
+  ppSpecD3->GetXaxis()->SetRangeUser(2.2,120);
+  ppSpecD3->GetYaxis()->SetRangeUser(0.5,1.5);
+  ppSpecD3->Draw();
+
+
+  TBox * b3 = new TBox(2.4,1-normUncert,2.6, 1+normUncert);
+  b3->SetFillStyle(1001);
+  b3->SetFillColor(kGray);
+  b3->Draw("same");
   gme->Draw("PZs s=0.01 same;2 s=1");
 
   AM_Band->Draw("3 same");
@@ -538,7 +558,9 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   z2->Draw("same");
 
   //redraw some elements on top
-  l->Draw("same");
+  TLine * l3 = new TLine(2.2,1,120,1);
+  l3->SetLineStyle(2);
+  l3->Draw("same");
   gme->Draw("PZs s=0.01 same;X");
 
   TLegend * specLegNoQ = new TLegend(0.4,0.75,0.9,0.9);
@@ -562,9 +584,9 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
 
   //plot with quenching models
   //redraw result
-  ppSpecD->GetYaxis()->SetRangeUser(0.5,1.5);
-  ppSpecD->Draw();
-  b->Draw("same");
+  ppSpecD3->GetYaxis()->SetRangeUser(0.5,1.5);
+  ppSpecD3->Draw();
+  b3->Draw("same");
   gme->Draw("PZs s=0.01 same;2 s=1");
 
   XZ_Band->Draw("3 same");
@@ -593,7 +615,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   specLegWQ->Draw("same"); 
 
   //redraw some elements on top
-  l->Draw("same");
+  l3->Draw("same");
   gme->Draw("PZs s=0.01 same;X");
   specLeg->Draw("same"); 
   CMS_lumi( canv2, 0,11);
@@ -601,5 +623,5 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
 
   canv2->SaveAs("plots/Figure_003-b.pdf");
   canv2->SaveAs("plots/Figure_003-b.png");
-  canv2->SaveAs("plots/Figure_003-b.C");*/
+  canv2->SaveAs("plots/Figure_003-b.C");
 }
