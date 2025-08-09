@@ -6,11 +6,88 @@
 #include "TColor.h"
 #include "TLine.h"
 #include "TGraphMultiErrors.h"
+#include "TGraphAsymmErrors.h"
 #include "TBox.h"
 
 void RAA(){
+  //load old measurements
+  TFile * oldRAA = TFile::Open("Models/CMS_RAA_Data_Other/HEPData-ins1496050-v2-Table_15.root","read");
+  TGraphAsymmErrors * PbPb_loaded = (TGraphAsymmErrors*) oldRAA->Get("Table 15/Graph1D_y1");
+  TH1D * PbPbStat = (TH1D*) oldRAA->Get("Table 15/Hist1D_y1_e1");
+  const int N_PbPb = PbPbStat->GetNbinsX();
+  TGraphMultiErrors * PbPb = new TGraphMultiErrors("PbPb", "", N_PbPb , 2);
+  for (int i = 1; i <= N_PbPb; ++i) {
+      double x = PbPbStat->GetBinCenter(i);
+      double ex = PbPbStat->GetBinWidth(i) / 2.0;
+      double y = PbPb_loaded->GetPointY(i-1);
+      double ey = PbPbStat->GetBinContent(i);
+      double exSyst = PbPbStat->GetBinWidth(i) / 2.0;
+      double eySyst = TMath::Power(PbPb_loaded->GetErrorY(i-1)*PbPb_loaded->GetErrorY(i-1) - PbPbStat->GetBinContent(i)*PbPbStat->GetBinContent(i),0.5);
+
+      PbPb->SetPoint(i - 1, x, y);
+      PbPb->SetPointEX(i-1,ex,ex);
+      PbPb->SetPointEY(i-1,0,ey,ey);
+      PbPb->SetPointEY(i-1,1,eySyst,eySyst);
+  }
+  PbPb->SetMarkerStyle(4);
+  PbPb->SetMarkerSize(1.3);
+  PbPb->GetAttLine(0)->SetLineWidth(2);
+  PbPb->GetAttLine(1)->SetLineColor(kOrange);
+  PbPb->GetAttFill(1)->SetFillColor(kOrange);
+  PbPb->GetAttFill(1)->SetFillStyle(1001);
+  oldRAA->Close();
+
+  oldRAA = TFile::Open("Models/CMS_RAA_Data_Other/HEPData-ins1496050-v2-Table_16.root","read");
+  TGraphAsymmErrors * pPb_loaded = (TGraphAsymmErrors*) oldRAA->Get("Table 16/Graph1D_y1");
+  TH1D * pPbStat = (TH1D*) oldRAA->Get("Table 16/Hist1D_y1_e1");
+  const int N_pPb = pPbStat->GetNbinsX();
+  TGraphMultiErrors * pPb = new TGraphMultiErrors("pPb", "", N_pPb , 2);
+  for (int i = 1; i <= N_pPb; ++i) {
+      double x = pPbStat->GetBinCenter(i);
+      double ex = pPbStat->GetBinWidth(i) / 2.0;
+      double y = pPb_loaded->GetPointY(i-1);
+      double ey = pPbStat->GetBinContent(i);
+      double exSyst = pPbStat->GetBinWidth(i) / 2.0;
+      double eySyst = TMath::Power(pPb_loaded->GetErrorY(i-1)*pPb_loaded->GetErrorY(i-1) - pPbStat->GetBinContent(i)*pPbStat->GetBinContent(i),0.5);
+
+      pPb->SetPoint(i - 1, x, y);
+      pPb->SetPointEX(i-1,ex,ex);
+      pPb->SetPointEY(i-1,0,ey,ey);
+      pPb->SetPointEY(i-1,1,eySyst,eySyst);
+  }
+  pPb->SetMarkerStyle(25);
+  pPb->SetMarkerSize(1.3);
+  pPb->GetAttLine(0)->SetLineWidth(2);
+  pPb->GetAttLine(1)->SetLineColor(kGreen+2);
+  pPb->GetAttFill(1)->SetFillColor(kGreen+2);
+  pPb->GetAttFill(1)->SetFillStyle(1001);
 
   //stuff for models
+  //Huss et al
+  TFile * HFile = TFile::Open("Models/Huss_et_al/Huss_OORAA.root","read");
+  TGraphAsymmErrors * huss5 = (TGraphAsymmErrors*) HFile->Get("hRAA_OO_5p2TeV");
+  TGraphAsymmErrors * huss7 = (TGraphAsymmErrors*) HFile->Get("hRAA_OO_7TeV");
+  TGraphErrors * huss_Band;
+  TGraph * huss_Central; 
+  {
+    double x[45] = {0};
+    double xerr[45] = {0};
+    double y[45] = {0};
+    double yerr[45] = {0};
+    huss_Band = new TGraphErrors(45,x,y,xerr,yerr);
+    huss_Central = new TGraph(45,x,y);
+    for(int i = 0; i<45; i++){
+      huss_Band->SetPoint(i,huss5->GetPointX(i), ((7-5.36)*huss5->GetPointY(i)+(5.36-5.02)*huss7->GetPointY(i))/(7.0-5.02));
+      huss_Band->SetPointError(i,0,huss5->GetErrorY(i));
+      huss_Central->SetPoint(i,huss5->GetPointX(i), ((7-5.36)*huss5->GetPointY(i)+(5.36-5.02)*huss7->GetPointY(i))/(7.0-5.02));
+    }
+  }
+  huss_Central->SetLineColor(kGreen+1);
+  huss_Central->SetLineWidth(7);
+  huss_Band->SetFillColorAlpha(kGreen+1, 0.4); // transparent fill
+  huss_Band->SetLineColor(kGreen+1);
+  huss_Band->SetMarkerStyle(0);
+
   //Zhakarov model
   TGraph* z1, *z2, *z3;
   {
@@ -260,28 +337,26 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   canv2->SetLogx();
 
   //dummy histogram to define the frame
-  TH1D * ppSpecD = new TH1D("specDummy1","",3,2,120);
-  //TH1D * ppSpecD = new TH1D("specDummy1","",3,0.5,120);
+  //TH1D * ppSpecD = new TH1D("specDummy1","",3,0.4,500);
+  TH1D * ppSpecD = new TH1D("specDummy1","",3,1.5,140);
   ppSpecD->GetYaxis()->SetTitle("R_{AA}");
   ppSpecD->GetYaxis()->SetTitleOffset(1.4);
   ppSpecD->GetYaxis()->SetTitleSize(0.045);
   ppSpecD->GetYaxis()->SetLabelSize(0.04);
   ppSpecD->GetYaxis()->CenterTitle();
   ppSpecD->GetYaxis()->SetLabelOffset(0.004);
- 
-  ppSpecD->GetYaxis()->SetRangeUser(0.2,1.8);
-
-  ppSpecD->GetXaxis()->SetRangeUser(0.5,120);
+  ppSpecD->GetYaxis()->SetRangeUser(0.2,1.6);
+  ppSpecD->GetXaxis()->SetRangeUser(1.5,140);
   ppSpecD->GetXaxis()->SetTitleFont(42);
   ppSpecD->GetXaxis()->SetTitle("p_{T} (GeV)");
   ppSpecD->GetXaxis()->SetTitleSize(0.045);
   ppSpecD->GetXaxis()->SetLabelSize(0.04);
   ppSpecD->GetXaxis()->SetTitleOffset(1.2);
   ppSpecD->GetXaxis()->CenterTitle();
-  ppSpecD->Draw();
+  ppSpecD->Draw("");
 
   float normUncert = 0.075;
-  TBox * b = new TBox(2.2,1-normUncert,2.4, 1+normUncert);
+  TBox * b = new TBox(2,1-normUncert,1.8, 1+normUncert);
   b->SetFillStyle(1001);
   b->SetFillColor(kGray);
   b->Draw("same");
@@ -348,7 +423,19 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   gme->GetAttFill(1)->SetFillStyle(1001);
   gme->Draw("PZs s=0.01 same;2 s=1");
   
-  TLine * l = new TLine(2,1,120,1);
+  //drawing a selection of points for CMS data
+  TGraphMultiErrors * PbPbCut = (TGraphMultiErrors*) PbPb->Clone("PbPbCut");
+  for(int i = 0; i<11; i++) PbPbCut->SetPoint(i,0,0);
+  for(int i = 30; i<34; i++) PbPbCut->SetPoint(i,0,0);
+  PbPbCut->Draw("PZs s=0.01 same;2 s=1");
+  PbPbCut->Draw("PZs s=0.01 same;X");
+  TGraphMultiErrors * pPbCut = (TGraphMultiErrors*) pPb->Clone("pPbCut");
+  for(int i = 0; i<13; i++) pPbCut->SetPoint(i,0,0);
+  for(int i = 32; i<33; i++) pPbCut->SetPoint(i,0,0);
+  pPbCut->Draw("PZs s=0.01 same;2 s=1");
+  pPbCut->Draw("PZs s=0.01 same;X");
+
+  TLine * l = new TLine(1.5,1,140,1);
   l->SetLineStyle(2);
   l->Draw("same");
   
@@ -363,13 +450,25 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   //raa->Draw("p same");
 
   //legends
-  TLegend * specLeg = new TLegend(0.15,0.55,0.35,0.75);
+  TLegend * specLeg = new TLegend(0.15,0.65,0.35,0.85);
   specLeg->SetTextFont(42);
   specLeg->SetTextSize(0.05);
   specLeg->SetFillStyle(0);
   specLeg->AddEntry((TObject*)0,"|#eta| < 1",""); 
   specLeg->SetFillStyle(0);
   specLeg->Draw("same"); 
+
+  TLegend * RAASummaryLeg = new TLegend(0.4,0.75,0.8,0.9);
+  RAASummaryLeg->SetTextFont(42);
+  RAASummaryLeg->SetTextSize(0.03);
+  RAASummaryLeg->SetFillStyle(0);
+  pPb->SetFillColor(kGreen+2);
+  gme->SetFillColor(TColor::GetColor("#5790fc"));
+  PbPb->SetFillColor(kOrange);
+  RAASummaryLeg->AddEntry(gme,"OO (5.36 TeV)","fp"); 
+  RAASummaryLeg->AddEntry(pPb,"pPb (5.02 TeV)","fp");
+  RAASummaryLeg->AddEntry(PbPb,"PbPb (5.02 TeV)","fp");
+  RAASummaryLeg->Draw("same");
 
   //int iPeriod = 0;
   //lumi_sqrtS = "0.5 nb^{-1} (5.36 TeV OO), 1.07 pb^{-1} (5.36 TeV pp)";
@@ -383,8 +482,50 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   canv2->SaveAs("plots/Figure_002.png");
   canv2->SaveAs("plots/Figure_002.C");
 
+  //plot with other datasets
+  TH1D * ppSpecD2 = new TH1D("specDummy1","",3,0.4,500);
+  ppSpecD2->GetYaxis()->SetTitle("R_{AA}");
+  ppSpecD2->GetYaxis()->SetTitleOffset(1.4);
+  ppSpecD2->GetYaxis()->SetTitleSize(0.045);
+  ppSpecD2->GetYaxis()->SetLabelSize(0.04);
+  ppSpecD2->GetYaxis()->CenterTitle();
+  ppSpecD2->GetYaxis()->SetLabelOffset(0.004);
+  ppSpecD2->GetYaxis()->SetRangeUser(0,2.0);
+  ppSpecD2->GetXaxis()->SetRangeUser(0.4,500);
+  ppSpecD2->GetXaxis()->SetTitleFont(42);
+  ppSpecD2->GetXaxis()->SetTitle("p_{T} (GeV)");
+  ppSpecD2->GetXaxis()->SetTitleSize(0.045);
+  ppSpecD2->GetXaxis()->SetLabelSize(0.04);
+  ppSpecD2->GetXaxis()->SetTitleOffset(1.2);
+  ppSpecD2->GetXaxis()->CenterTitle();
+  ppSpecD2->Draw("");
+
+  PbPb->Draw("PZs s=0.01 same;2 s=1");
+  PbPb->Draw("PZs s=0.01 same;X");
+  pPb->Draw("PZs s=0.01 same;2 s=1");
+  pPb->Draw("PZs s=0.01 same;X");
+  gme->Draw("PZs s=0.01 same;2 s=1");
+  TBox * b2 = new TBox(0.5,1-normUncert,0.55, 1+normUncert);
+  b2->SetFillStyle(1001);
+  b2->SetFillColor(kGray);
+  b2->Draw("same");
+  TLine * l2 = new TLine(0.4,1,500,1);
+  l2->SetLineStyle(2);
+  l2->Draw("same");
+  gme->Draw("PZs s=0.01 same;X");
+  CMS_lumi( canv2, 0,11);
+  specLeg->Draw("same");
+  RAASummaryLeg->Draw("same");
+  canv2->RedrawAxis();
+
+  canv2->SaveAs("plots/Figure_002_compare.pdf");
+  canv2->SaveAs("plots/Figure_002_compare.png");
+  canv2->SaveAs("plots/Figure_002_compare.C");
+
   //plot with no-quenching baselines
   //redraw result
+  /*
+  ppSpecD->GetXaxis()->SetRangeUser(2,120);
   ppSpecD->GetYaxis()->SetRangeUser(0.5,1.5);
   ppSpecD->Draw();
   b->Draw("same");
@@ -405,8 +546,8 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   specLegNoQ->SetTextSize(0.03);
   specLegNoQ->SetFillStyle(0);
   specLegNoQ->AddEntry((TObject*)0,"Baseline models (no energy loss)",""); 
-  specLegNoQ->AddEntry(AM_Central,"NLO qQCD + EPPS21 (Huss et al.)","l"); 
-  specLegNoQ->AddEntry(z2,"LO qQCD + EPS09 (Zakharov)","l"); 
+  specLegNoQ->AddEntry(AM_Central,"NLO pQCD + EPPS21 (Huss et al.)","l"); 
+  specLegNoQ->AddEntry(z2,"LO pQCD + EPS09 (Zakharov)","l"); 
   specLegNoQ->SetFillStyle(0);
   specLegNoQ->Draw("same"); 
 
@@ -419,7 +560,6 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   canv2->SaveAs("plots/Figure_003-a.C");
 
 
-  //***************************************************************** */
   //plot with quenching models
   //redraw result
   ppSpecD->GetYaxis()->SetRangeUser(0.5,1.5);
@@ -430,21 +570,25 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   XZ_Band->Draw("3 same");
   XZ_Central->Draw("L same");
 
+  huss_Band->Draw("3 same");
+  huss_Central->Draw("L same");
+
   CUJET_Band->Draw("3 same");
   CUJET_Central->Draw("L same");
 
   z1->Draw("same");
   z3->Draw("same");
 
-  TLegend * specLegWQ = new TLegend(0.4,0.65,0.9,0.9);
+  TLegend * specLegWQ = new TLegend(0.4,0.6,0.9,0.9);
   specLegWQ->SetTextFont(42);
   specLegWQ->SetTextSize(0.03);
   specLegWQ->SetFillStyle(0);
   specLegWQ->AddEntry((TObject*)0,"Energy loss models",""); 
-  specLegWQ->AddEntry(XZ_Central,"pQCD + Bayesian #hat{q} (Xie and Zhang)","lf"); 
-  specLegWQ->AddEntry(CUJET_Central,"CUJET/CIBJET","lf"); 
+  specLegWQ->AddEntry(huss_Central,"BDMPS-Z (Huss et al.)","lf"); 
   specLegWQ->AddEntry(z1,"LCPI + mQGP in pp (Zakharov)","l"); 
   specLegWQ->AddEntry(z3,"LCPI + no mQGP in pp (Zakharov)","l"); 
+  specLegWQ->AddEntry(XZ_Central,"pQCD+Bayesian #hat{q} (Xie and Zhang)","lf"); 
+  specLegWQ->AddEntry(CUJET_Central,"CUJET/CIBJET","lf"); 
   specLegWQ->SetFillStyle(0);
   specLegWQ->Draw("same"); 
 
@@ -457,5 +601,5 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
 
   canv2->SaveAs("plots/Figure_003-b.pdf");
   canv2->SaveAs("plots/Figure_003-b.png");
-  canv2->SaveAs("plots/Figure_003-b.C");
+  canv2->SaveAs("plots/Figure_003-b.C");*/
 }
