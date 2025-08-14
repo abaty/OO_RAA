@@ -308,9 +308,10 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   gStyle->SetPadTickX(1);
 
   //load data
-  TFile * f = TFile::Open("Results/pp_OO_raa_20250729_Unblinding_Final_v3.root","read");
+  TFile * f = TFile::Open("Results/pp_OO_raa_20250811.root","read");
   //get raa data
-  TH1D * data = (TH1D*)f->Get("Unnormalized_RAA");
+  TH1D * data = (TH1D*)f->Get("normalized_RAA");
+  data->Print("All");
  
   //for testing, comment for actual data 
   //for(int i = 0; i<data->GetSize(); i++){
@@ -319,12 +320,13 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   //}
 
   //A squared scaling
-  data->Scale(1.0/256.0);
+  //data->Scale(1.0/256.0);
   //data->Print("All");
   
 
   //load systematics
   TH1D * raaSyst = (TH1D*)f->Get("Raa_Total_uncertainty");
+  raaSyst->Print("All");
 
   //set up canvas and pads
   TCanvas * canv2 = new TCanvas("canv2","canv2",800,800);
@@ -345,7 +347,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   ppSpecD->GetYaxis()->SetLabelSize(0.04);
   ppSpecD->GetYaxis()->CenterTitle();
   ppSpecD->GetYaxis()->SetLabelOffset(0.004);
-  ppSpecD->GetYaxis()->SetRangeUser(0.2,1.6);
+  ppSpecD->GetYaxis()->SetRangeUser(0,1.6);
   ppSpecD->GetXaxis()->SetRangeUser(1.5,140);
   ppSpecD->GetXaxis()->SetTitleFont(42);
   ppSpecD->GetXaxis()->SetTitle("p_{T} (GeV)");
@@ -377,13 +379,13 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
       //double ey = data->GetBinError(i)/data->GetBinContent(i);//for RAA=1 test
    
       //luminosity scaling
-      if( x < 10.0){
-        y = y/lowPtLumi;
-        ey = ey/lowPtLumi;
-      }else{
-        y = y/highPtLumi;
-        ey = ey/highPtLumi;
-      } 
+      //if( x < 10.0){
+      //  y = y/lowPtLumi;
+      //  ey = ey/lowPtLumi;
+      //}else{
+      //  y = y/highPtLumi;
+      //  ey = ey/highPtLumi;
+      //} 
 
       //manually zero out some data points (used for blinding subsets of data)
       //if( x < 10.0){
@@ -405,6 +407,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
       gme->SetPointEY(i-1,0,ey,ey);
       gme->SetPointEY(i-1,1,eySyst,eySyst);
   }
+  gme->Print("All");
 
   //cut points above 100 and below 3 GeV
   for(int i = N-1; i>-1; i--){
@@ -450,7 +453,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   //raa->Draw("p same");
 
   //legends
-  TLegend * specLeg = new TLegend(0.15,0.65,0.35,0.85);
+  TLegend * specLeg = new TLegend(0.75,0.2,0.95,0.25);
   specLeg->SetTextFont(42);
   specLeg->SetTextSize(0.05);
   specLeg->SetFillStyle(0);
@@ -458,16 +461,18 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   specLeg->SetFillStyle(0);
   specLeg->Draw("same"); 
 
-  TLegend * RAASummaryLeg = new TLegend(0.4,0.75,0.8,0.9);
+  TLegend * RAASummaryLeg = new TLegend(0.38,0.8,0.95,0.91);
   RAASummaryLeg->SetTextFont(42);
   RAASummaryLeg->SetTextSize(0.03);
   RAASummaryLeg->SetFillStyle(0);
   pPb->SetFillColor(kGreen+2);
   gme->SetFillColor(TColor::GetColor("#5790fc"));
   PbPb->SetFillColor(kOrange);
-  RAASummaryLeg->AddEntry(gme,"OO (5.36 TeV)","fp"); 
-  RAASummaryLeg->AddEntry(pPb,"pPb (5.02 TeV)","fp");
+  RAASummaryLeg->SetNColumns(2);
+  RAASummaryLeg->AddEntry(gme,"OO (This analysis)","fp"); 
   RAASummaryLeg->AddEntry(PbPb,"PbPb (5.02 TeV)","fp");
+  RAASummaryLeg->AddEntry(pPb,"pPb (5.02 TeV)","fp");
+  RAASummaryLeg->AddEntry(PbPb,"XeXe (5.44 TeV)","fp");
   RAASummaryLeg->Draw("same");
 
   //int iPeriod = 0;
@@ -483,14 +488,14 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   canv2->SaveAs("plots/Figure_002.C");
 
   //plot with other datasets
-  TH1D * ppSpecD2 = new TH1D("specDummy1","",3,0.4,500);
+  TH1D * ppSpecD2 = new TH1D("specDummy2","",3,0.4,500);
   ppSpecD2->GetYaxis()->SetTitle("R_{AA}");
   ppSpecD2->GetYaxis()->SetTitleOffset(1.4);
   ppSpecD2->GetYaxis()->SetTitleSize(0.045);
   ppSpecD2->GetYaxis()->SetLabelSize(0.04);
   ppSpecD2->GetYaxis()->CenterTitle();
   ppSpecD2->GetYaxis()->SetLabelOffset(0.004);
-  ppSpecD2->GetYaxis()->SetRangeUser(0,2.0);
+  ppSpecD2->GetYaxis()->SetRangeUser(0,1.6);
   ppSpecD2->GetXaxis()->SetRangeUser(0.4,500);
   ppSpecD2->GetXaxis()->SetTitleFont(42);
   ppSpecD2->GetXaxis()->SetTitle("p_{T} (GeV)");
@@ -525,7 +530,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   //plot with no-quenching baselines
   //redraw result
   
-  TH1D * ppSpecD3 = new TH1D("specDummy1","",3,2.2,120);
+  TH1D * ppSpecD3 = new TH1D("specDummy3","",3,2.2,120);
   ppSpecD3->GetYaxis()->SetTitle("R_{AA}");
   ppSpecD3->GetYaxis()->SetTitleOffset(1.4);
   ppSpecD3->GetYaxis()->SetTitleSize(0.045);

@@ -4,6 +4,7 @@
 #include "TH1F.h"
 #include "TLegend.h"
 #include "TColor.h"
+#include "TFile.h"
 
 void Spectra(){
 
@@ -18,27 +19,27 @@ setTDRStyle();
   gStyle->SetPadTickX(1);
 
   //load data
-  TFile * f = TFile::Open("Results/pp_OO_raa_20250729_Unblinding_Final_v3.root","read");
+  TFile * f = TFile::Open("Results/pp_OO_raa_20250811.root","read");
   //get pp and OO data
   TH1D * pp = (TH1D*)f->Get("pp_Nominal_data_points");
   //dummy OO
   TH1D * OO = (TH1D*)f->Get("OO_Nominal_data_points");
 
   //load systematics
-  TH1D * ppSyst = (TH1D*)f->Get("pp_Total_uncertainty");
+  TH1F * ppSyst = (TH1F*)f->Get("pp_Total_uncertainty");
   //dummy OO
-  TH1D * OOSyst = (TH1D*)f->Get("OO_Total_uncertainty");
+  TH1F * OOSyst = (TH1F*)f->Get("OO_Total_uncertainty");
 
   //applying lumi scaling for OO
-  OO->Scale(1./1571563.58);
+  //OO->Scale(1./1571563.58);
 
   //applying a different lumi scaling for low-pt OO
-  for(int i = 0; i<OO->GetNbinsX(); i++){
+  /*for(int i = 0; i<OO->GetNbinsX(); i++){
     if(OO->GetBinCenter(i)<10){
       OO->SetBinContent(i,OO->GetBinContent(i)/261927.26*1571563.58);
       OO->SetBinError(i,  OO->GetBinError(i)/261927.26*1571563.58);
     }
-  }
+  }*/
 
 
   //set up canvas and pads
@@ -62,15 +63,19 @@ setTDRStyle();
   pad1->SetLogy();
 
   //dummy histogram to define the frame
-  TH1D * ppSpecD = new TH1D("specDummy1","",3,2,120);
+  TH1D * ppSpecD = new TH1D("specDummy1","",3,2.5,120);
   ppSpecD->GetYaxis()->SetTitle("#frac{1}{4#pi p_{T}} #frac{d#sigma}{dp_{T}} (mb/GeV^{2})");
-  ppSpecD->GetYaxis()->SetTitleOffset(1.4);
+  ppSpecD->GetYaxis()->SetTitleOffset(1.5);
   ppSpecD->GetYaxis()->SetTitleSize(0.045);
   ppSpecD->GetYaxis()->SetLabelSize(0.04);
   ppSpecD->GetYaxis()->CenterTitle();
   ppSpecD->GetYaxis()->SetLabelOffset(0.002);
-  ppSpecD->GetYaxis()->SetRangeUser(1.1e-14,1e5);
-  ppSpecD->GetXaxis()->SetRangeUser(2,120);
+  ppSpecD->GetYaxis()->SetRangeUser(1.1e-11,1e4);
+  ppSpecD->GetXaxis()->SetRangeUser(2.5,120);
+
+  //sets 4 minor divisions per major
+  int majors = ppSpecD->GetYaxis()->GetNdivisions() / 100; // extract current majors
+  ppSpecD->GetYaxis()->SetNdivisions(majors+2,4,0,kTRUE);
   ppSpecD->Draw();
 
   //drawing data
@@ -124,8 +129,8 @@ setTDRStyle();
   //lower panel
   pad2->cd();
   pad2->SetLogx();
-  TH1D * ppSpecD2 = new TH1D("specDummy2","",3,2,120);
-  ppSpecD2->GetYaxis()->SetRangeUser(0.0,9.999);
+  TH1D * ppSpecD2 = new TH1D("specDummy2","",3,2.5,120);
+  ppSpecD2->GetYaxis()->SetRangeUser(0.0,7.499);
   ppSpecD2->GetYaxis()->SetNdivisions(4,4,0,kTRUE);
   ppSpecD2->GetYaxis()->SetTitleOffset(0.4);
   ppSpecD2->GetYaxis()->SetTitleFont(42);
@@ -133,7 +138,7 @@ setTDRStyle();
   ppSpecD2->GetYaxis()->SetLabelSize(0.095*1.2);
   ppSpecD2->GetXaxis()->SetTitleFont(42);
   ppSpecD2->GetYaxis()->SetTitle(Form("Syst. uncert. (%s)","%"));
-  ppSpecD2->GetXaxis()->SetRangeUser(2,120);
+  ppSpecD2->GetXaxis()->SetRangeUser(2.5,120);
   ppSpecD2->GetXaxis()->SetTitle("p_{T} (GeV)");
   ppSpecD2->GetXaxis()->SetTitleSize(0.1*1.2);
   ppSpecD2->GetXaxis()->SetLabelSize(0.1*1.2);
@@ -148,7 +153,8 @@ setTDRStyle();
   ppSyst->GetXaxis()->SetRangeUser(3,100);
   ppSyst->SetLineColor(kBlack);
   ppSyst->SetLineWidth(3);
-  ppSyst->Draw("same HIST");
+  //ppSyst->Draw("same HIST");
+  ppSyst->Draw("l same");
   
   //drawing systematics
   OOSyst->SetFillColor(TColor::GetColor("#5790fc"));
@@ -156,7 +162,7 @@ setTDRStyle();
   OOSyst->GetXaxis()->SetRangeUser(3,100);
   OOSyst->SetLineColor(TColor::GetColor("#5790fc"));
   OOSyst->SetLineWidth(3);
-  OOSyst->Draw("same HIST");
+  OOSyst->Draw("l same");
 
   //int iPeriod = 0;
   //lumi_sqrtS = "0.5 nb^{-1} (5.36 TeV OO), 1.07 pb^{-1} (5.36 TeV pp)";
