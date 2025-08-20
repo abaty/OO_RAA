@@ -14,7 +14,10 @@ void RAA(){
   TFile * oldRAA = TFile::Open("Models/CMS_RAA_Data_Other/HEPData-ins1496050-v2-Table_15.root","read");
   TGraphAsymmErrors * PbPb_loaded = (TGraphAsymmErrors*) oldRAA->Get("Table 15/Graph1D_y1");
   TH1D * PbPbStat = (TH1D*) oldRAA->Get("Table 15/Hist1D_y1_e1");
+  TH1D * PbPbSyst = (TH1D*) oldRAA->Get("Table 15/Hist1D_y1_e2");
   const int N_PbPb = PbPbStat->GetNbinsX();
+  double PbPbnormUncertU = 0.036;
+  double PbPbnormUncertD = 0.041;
   TGraphMultiErrors * PbPb = new TGraphMultiErrors("PbPb", "", N_PbPb , 2);
   for (int i = 1; i <= N_PbPb; ++i) {
       double x = PbPbStat->GetBinCenter(i);
@@ -22,7 +25,7 @@ void RAA(){
       double y = PbPb_loaded->GetPointY(i-1);
       double ey = PbPbStat->GetBinContent(i);
       double exSyst = PbPbStat->GetBinWidth(i) / 2.0;
-      double eySyst = TMath::Power(PbPb_loaded->GetErrorY(i-1)*PbPb_loaded->GetErrorY(i-1) - PbPbStat->GetBinContent(i)*PbPbStat->GetBinContent(i),0.5);
+      double eySyst = PbPbSyst->GetBinContent(i);
 
       PbPb->SetPoint(i - 1, x, y);
       PbPb->SetPointEX(i-1,ex,ex);
@@ -40,7 +43,10 @@ void RAA(){
   oldRAA = TFile::Open("Models/CMS_RAA_Data_Other/HEPData-ins1496050-v2-Table_16.root","read");
   TGraphAsymmErrors * pPb_loaded = (TGraphAsymmErrors*) oldRAA->Get("Table 16/Graph1D_y1");
   TH1D * pPbStat = (TH1D*) oldRAA->Get("Table 16/Hist1D_y1_e1");
+  TH1D * pPbSystu = (TH1D*) oldRAA->Get("Table 16/Hist1D_y1_e2plus");
+  TH1D * pPbSystd = (TH1D*) oldRAA->Get("Table 16/Hist1D_y1_e2minus");
   const int N_pPb = pPbStat->GetNbinsX();
+  double pPbnormUncert = 0.05;
   TGraphMultiErrors * pPb = new TGraphMultiErrors("pPb", "", N_pPb , 2);
   for (int i = 1; i <= N_pPb; ++i) {
       double x = pPbStat->GetBinCenter(i);
@@ -48,19 +54,64 @@ void RAA(){
       double y = pPb_loaded->GetPointY(i-1);
       double ey = pPbStat->GetBinContent(i);
       double exSyst = pPbStat->GetBinWidth(i) / 2.0;
-      double eySyst = TMath::Power(pPb_loaded->GetErrorY(i-1)*pPb_loaded->GetErrorY(i-1) - pPbStat->GetBinContent(i)*pPbStat->GetBinContent(i),0.5);
+      double eySystu = pPbSystu->GetBinContent(i);
+      double eySystd = pPbSystd->GetBinContent(i);
 
       pPb->SetPoint(i - 1, x, y);
       pPb->SetPointEX(i-1,ex,ex);
       pPb->SetPointEY(i-1,0,ey,ey);
-      pPb->SetPointEY(i-1,1,eySyst,eySyst);
+      pPb->SetPointEY(i-1,1,eySystu,-eySystd);
   }
+  pPb->Print("All");
   pPb->SetMarkerStyle(25);
   pPb->SetMarkerSize(1.3);
   pPb->GetAttLine(0)->SetLineWidth(2);
   pPb->GetAttLine(1)->SetLineColor(kGreen+2);
   pPb->GetAttFill(1)->SetFillColor(kGreen+2);
   pPb->GetAttFill(1)->SetFillStyle(1001);
+  oldRAA->Close();
+
+  //XeXe
+  oldRAA = TFile::Open("Models/CMS_RAA_Data_Other/HEPData-ins1692558-v1-Table_5.root","read");
+  TGraphAsymmErrors * XeXe_loaded = (TGraphAsymmErrors*) oldRAA->Get("Table 5/Graph1D_y1");
+  TH1D * XeXeStat = (TH1D*) oldRAA->Get("Table 5/Hist1D_y1_e1");
+  TH1D * XeXeSyst = (TH1D*) oldRAA->Get("Table 5/Hist1D_y1_e2");
+  TH1D * XeXeNorm = (TH1D*) oldRAA->Get("Table 5/Hist1D_y1_e3");
+  double XeXeNormUncert = 0.084;
+  const int N_XeXe = XeXeStat->GetNbinsX();
+  //2 is for slightly smaller box to get borders
+  TGraphMultiErrors * XeXe = new TGraphMultiErrors("XeXe", "", N_XeXe , 2);
+  double XeXe_eySyst[50] = {0};
+  double XeXe_exSyst[50] = {0};
+  for (int i = 1; i <= N_XeXe; ++i) {
+      double x = XeXeStat->GetBinCenter(i);
+      double ex = XeXeStat->GetBinWidth(i) / 2.0;
+      double y = XeXe_loaded->GetPointY(i-1);
+      double ey = XeXeStat->GetBinContent(i);
+      double exSyst = XeXeStat->GetBinWidth(i) / 2.0;
+      double eySyst = XeXeSyst->GetBinContent(i);
+
+      //store these for later, not used now
+      XeXe_exSyst[i] = exSyst;
+      XeXe_eySyst[i] = eySyst;
+
+      XeXe->SetPoint(i - 1, x, y);
+      XeXe->SetPointEX(i-1,ex,ex);
+      XeXe->SetPointEY(i-1,0,ey,ey);
+      XeXe->SetPointEY(i-1,1,eySyst,eySyst);
+  }
+  XeXe->SetMarkerStyle(28);
+  XeXe->SetMarkerSize(1.3);
+  XeXe->SetLineWidth(2);
+  XeXe->SetMarkerColor(TColor::GetColor("#e42536"));
+  XeXe->SetLineColor(TColor::GetColor("#e42536"));
+  XeXe->GetAttLine(0)->SetLineWidth(2);
+  XeXe->GetAttLine(0)->SetLineColor(TColor::GetColor("#e42536"));
+  XeXe->GetAttLine(1)->SetLineColor(TColor::GetColor("#e42536"));
+  XeXe->GetAttLine(1)->SetLineWidth(2);
+  XeXe->GetAttFill(1)->SetFillColorAlpha(TColor::GetColor("#e42536"),0.25);
+  XeXe->GetAttFill(1)->SetFillStyle(1001);
+  oldRAA->Close();
 
   //stuff for models
   //Huss et al
@@ -308,7 +359,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   gStyle->SetPadTickX(1);
 
   //load data
-  TFile * f = TFile::Open("Results/pp_OO_raa_20250811.root","read");
+  TFile * f = TFile::Open("Results/pp_OO_raa_20250815.root","read");
   //get raa data
   TH1D * data = (TH1D*)f->Get("normalized_RAA");
   data->Print("All");
@@ -358,10 +409,22 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   ppSpecD->Draw("");
 
   float normUncert = 0.075;
-  TBox * b = new TBox(2,1-normUncert,1.8, 1+normUncert);
+  TBox * b = new TBox(1.7,1-normUncert,1.8, 1+normUncert);
   b->SetFillStyle(1001);
-  b->SetFillColor(kGray);
+  b->SetFillColorAlpha(TColor::GetColor("#5790fc"),0.5);
   b->Draw("same");
+  TBox * bpPb = new TBox(1.8,1-pPbnormUncert,1.9, 1+pPbnormUncert);
+  bpPb->SetFillStyle(1001);
+  bpPb->SetFillColorAlpha(kGreen+2,0.5);
+  bpPb->Draw("same");
+  TBox * bPbPb = new TBox(1.9,1-PbPbnormUncertU,2.0, 1+PbPbnormUncertD);
+  bPbPb->SetFillStyle(1001);
+  bPbPb->SetFillColorAlpha(kOrange,0.5);
+  bPbPb->Draw("same");
+  TBox * bXeXe = new TBox(2.0,1-XeXeNormUncert,2.1, 1+XeXeNormUncert);
+  bXeXe->SetFillStyle(1001);
+  bXeXe->SetFillColorAlpha(kRed,0.5);
+  bXeXe->Draw("same");
 
   // Create TGraphMultiErrors
   const int N = data->GetNbinsX();
@@ -437,6 +500,30 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   for(int i = 32; i<33; i++) pPbCut->SetPoint(i,0,0);
   pPbCut->Draw("PZs s=0.01 same;2 s=1");
   pPbCut->Draw("PZs s=0.01 same;X");
+  TGraphMultiErrors * XeXeCut = (TGraphMultiErrors*) XeXe->Clone("XeXeCut");
+  for(int i = 0; i<13; i++) XeXeCut->SetPoint(i,0,0);
+  //for(int i = 29; i<30; i++) XeXeCut->SetPoint(i,0,0);
+  //XeXeCut->Draw("PZs s=0.01 same;2 s=1");
+  XeXeCut->Draw("PZs s=0.01 same;X");
+  // Draw box outlines manually
+    for (int i = 13; i < 29; i++) {
+        double xL = XeXeCut->GetPointX(i) - XeXe_exSyst[i+1];
+        double xR = XeXeCut->GetPointX(i) + XeXe_exSyst[i+1];
+        double yB = XeXeCut->GetPointY(i) - XeXe_eySyst[i+1];
+        double yT = XeXeCut->GetPointY(i) + XeXe_eySyst[i+1];
+
+        // Four border lines
+        auto top    = new TLine(xL, yT, xR, yT);
+        auto bottom = new TLine(xL, yB, xR, yB);
+        auto left   = new TLine(xL, yB, xL, yT);
+        auto right  = new TLine(xR, yB, xR, yT);
+
+        for (auto line : {top, bottom, left, right}) {
+            line->SetLineColor(TColor::GetColor("#e42536"));
+            line->SetLineWidth(2);
+            line->Draw("same");
+        }
+    }
 
   TLine * l = new TLine(1.5,1,140,1);
   l->SetLineStyle(2);
@@ -463,7 +550,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
 
   TLegend * RAASummaryLeg = new TLegend(0.38,0.8,0.95,0.91);
   RAASummaryLeg->SetTextFont(42);
-  RAASummaryLeg->SetTextSize(0.03);
+  RAASummaryLeg->SetTextSize(0.026);
   RAASummaryLeg->SetFillStyle(0);
   pPb->SetFillColor(kGreen+2);
   gme->SetFillColor(TColor::GetColor("#5790fc"));
@@ -472,7 +559,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   RAASummaryLeg->AddEntry(gme,"OO (This analysis)","fp"); 
   RAASummaryLeg->AddEntry(PbPb,"PbPb (5.02 TeV)","fp");
   RAASummaryLeg->AddEntry(pPb,"pPb (5.02 TeV)","fp");
-  RAASummaryLeg->AddEntry(PbPb,"XeXe (5.44 TeV)","fp");
+  RAASummaryLeg->AddEntry(XeXe,"XeXe (5.44 TeV, 0-80%)","fp");
   RAASummaryLeg->Draw("same");
 
   //int iPeriod = 0;
@@ -495,7 +582,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   ppSpecD2->GetYaxis()->SetLabelSize(0.04);
   ppSpecD2->GetYaxis()->CenterTitle();
   ppSpecD2->GetYaxis()->SetLabelOffset(0.004);
-  ppSpecD2->GetYaxis()->SetRangeUser(0,1.6);
+  ppSpecD2->GetYaxis()->SetRangeUser(0,2.0);
   ppSpecD2->GetXaxis()->SetRangeUser(0.4,500);
   ppSpecD2->GetXaxis()->SetTitleFont(42);
   ppSpecD2->GetXaxis()->SetTitle("p_{T} (GeV)");
@@ -512,12 +599,46 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   gme->Draw("PZs s=0.01 same;2 s=1");
   TBox * b2 = new TBox(0.5,1-normUncert,0.55, 1+normUncert);
   b2->SetFillStyle(1001);
-  b2->SetFillColor(kGray);
+  b2->SetFillColorAlpha(TColor::GetColor("#5790fc"),0.5);
   b2->Draw("same");
+  TBox * b2pPb = new TBox(0.55,1-pPbnormUncert,0.6, 1+pPbnormUncert);
+  b2pPb->SetFillStyle(1001);
+  b2pPb->SetFillColorAlpha(kGreen+2,0.5);
+  b2pPb->Draw("same");
+  TBox * b2PbPb = new TBox(0.6,1-PbPbnormUncertU,0.65, 1+PbPbnormUncertD);
+  b2PbPb->SetFillStyle(1001);
+  b2PbPb->SetFillColorAlpha(kOrange,0.5);
+  b2PbPb->Draw("same");
+  TBox * b2XeXe = new TBox(0.65,1-XeXeNormUncert,0.7, 1+XeXeNormUncert);
+  b2XeXe->SetFillStyle(1001);
+  b2XeXe->SetFillColorAlpha(kRed,0.5);
+  b2XeXe->Draw("same");
   TLine * l2 = new TLine(0.4,1,500,1);
   l2->SetLineStyle(2);
   l2->Draw("same");
   gme->Draw("PZs s=0.01 same;X");
+
+  XeXe->Draw("PZs s=0.01 same;X");
+  // Draw box outlines manually
+    for (int i = 0; i < 29; i++) {
+        double xL = XeXe->GetPointX(i) - XeXe_exSyst[i+1];
+        double xR = XeXe->GetPointX(i) + XeXe_exSyst[i+1];
+        double yB = XeXe->GetPointY(i) - XeXe_eySyst[i+1];
+        double yT = XeXe->GetPointY(i) + XeXe_eySyst[i+1];
+
+        // Four border lines
+        auto top    = new TLine(xL, yT, xR, yT);
+        auto bottom = new TLine(xL, yB, xR, yB);
+        auto left   = new TLine(xL, yB, xL, yT);
+        auto right  = new TLine(xR, yB, xR, yT);
+
+        for (auto line : {top, bottom, left, right}) {
+            line->SetLineColor(TColor::GetColor("#e42536"));
+            line->SetLineWidth(2);
+            line->Draw("same");
+        }
+    }
+
   CMS_lumi( canv2, 0,11);
   specLeg->Draw("same");
   RAASummaryLeg->Draw("same");
@@ -550,9 +671,9 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   ppSpecD3->Draw();
 
 
-  TBox * b3 = new TBox(2.4,1-normUncert,2.6, 1+normUncert);
+  TBox * b3 = new TBox(2.4,1-normUncert,2.5, 1+normUncert);
   b3->SetFillStyle(1001);
-  b3->SetFillColor(kGray);
+  b3->SetFillColorAlpha(TColor::GetColor("#5790fc"),0.5);
   b3->Draw("same");
   gme->Draw("PZs s=0.01 same;2 s=1");
 
