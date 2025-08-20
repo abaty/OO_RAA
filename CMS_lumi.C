@@ -75,9 +75,12 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
     {
       lumiText += lumi_sqrtS;
     }
+  else if ( iPeriod==13 )
+    {
+      lumiText += lumi_sqrtSNeNe;
+    } 
    
   std::cout << lumiText << endl;
-
   TLatex latex;
   latex.SetNDC();
   latex.SetTextAngle(0);

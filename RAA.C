@@ -10,6 +10,39 @@
 #include "TBox.h"
 
 void RAA(){
+
+  bool doNeNe = false;
+
+  //NeNe
+  TFile * NeNeRAA = TFile::Open("Models/NeNeRAA/NeNeOverPPRatio.root","read");
+  TH1D * NeNeCentral = (TH1D*) NeNeRAA->Get("normalized_RAA_NucleusNucleus");
+  TH1D * NeNeSyst = (TH1D*) NeNeRAA->Get("Raa_Total_uncertainty_NucleusNucleus");
+  const int N_NeNe = NeNeCentral->GetNbinsX();
+  TGraphMultiErrors * NeNe = new TGraphMultiErrors("NeNe", "", N_NeNe , 2);
+  for (int i = 1; i <= N_NeNe-20; ++i) {
+      double x = NeNeCentral->GetBinCenter(20+i);
+      double ex = NeNeCentral->GetBinWidth(20+i) / 2.0;
+      double y = NeNeCentral->GetBinContent(20+i);
+      double ey = NeNeCentral->GetBinError(20+i);
+      double exSyst = NeNeCentral->GetBinWidth(20+i) / 2.0;
+      double eySyst = NeNeSyst->GetBinError(20+i);
+
+      NeNe->SetPoint(i - 1, x, y);
+      NeNe->SetPointEX(i-1,ex,ex);
+      NeNe->SetPointEY(i-1,0,ey,ey);
+      NeNe->SetPointEY(i-1,1,eySyst,eySyst);
+  }
+  NeNe->SetMarkerStyle(21);
+  NeNe->SetMarkerSize(1.1);
+  NeNe->SetMarkerColor(kViolet+2);
+  NeNe->SetFillColorAlpha(kViolet-9,0.8);
+  NeNe->GetAttLine(0)->SetLineWidth(2);
+  NeNe->GetAttLine(0)->SetLineColor(kViolet+2);
+  NeNe->GetAttLine(1)->SetLineColorAlpha(kViolet-9,0.8);
+  NeNe->GetAttFill(1)->SetFillColorAlpha(kViolet-9,0.8);
+  NeNe->GetAttFill(1)->SetFillStyle(1001);
+  NeNeRAA->Close();
+
   //load old measurements
   TFile * oldRAA = TFile::Open("Models/CMS_RAA_Data_Other/HEPData-ins1496050-v2-Table_15.root","read");
   TGraphAsymmErrors * PbPb_loaded = (TGraphAsymmErrors*) oldRAA->Get("Table 15/Graph1D_y1");
@@ -408,11 +441,18 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   ppSpecD->GetXaxis()->CenterTitle();
   ppSpecD->Draw("");
 
-  float normUncert = 0.075;
+  float normUncert = 0.071;
+  float NeNeNormUncert = 0.071;
   TBox * b = new TBox(1.7,1-normUncert,1.8, 1+normUncert);
   b->SetFillStyle(1001);
   b->SetFillColorAlpha(TColor::GetColor("#5790fc"),0.5);
   b->Draw("same");
+
+  TBox * bNeNe = new TBox(1.6,1-normUncert,1.7, 1+normUncert);
+  bNeNe->SetFillStyle(1001);
+  bNeNe->SetFillColorAlpha(kViolet-9,0.8);
+  if(doNeNe) bNeNe->Draw("same");
+
   TBox * bpPb = new TBox(1.8,1-pPbnormUncert,1.9, 1+pPbnormUncert);
   bpPb->SetFillStyle(1001);
   bpPb->SetFillColorAlpha(kGreen+2,0.5);
@@ -500,6 +540,14 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   for(int i = 32; i<33; i++) pPbCut->SetPoint(i,0,0);
   pPbCut->Draw("PZs s=0.01 same;2 s=1");
   pPbCut->Draw("PZs s=0.01 same;X");
+
+  TGraphMultiErrors * NeNeCut = (TGraphMultiErrors*) NeNe->Clone("NeNeCut");
+  NeNeCut->Print("All");
+  //for(int i = 0; i<8; i++) NeNeCut->SetPoint(i,0,0);
+  for(int i = 43; i<49; i++) NeNeCut->SetPoint(i,0,0);
+  if(doNeNe) NeNeCut->Draw("PZs s=0.01 same;2 s=1");
+  if(doNeNe) NeNeCut->Draw("PZs s=0.01 same;X");
+
   TGraphMultiErrors * XeXeCut = (TGraphMultiErrors*) XeXe->Clone("XeXeCut");
   for(int i = 0; i<13; i++) XeXeCut->SetPoint(i,0,0);
   //for(int i = 29; i<30; i++) XeXeCut->SetPoint(i,0,0);
@@ -556,7 +604,8 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   gme->SetFillColor(TColor::GetColor("#5790fc"));
   PbPb->SetFillColor(kOrange);
   RAASummaryLeg->SetNColumns(2);
-  RAASummaryLeg->AddEntry(gme,"OO (This analysis)","fp"); 
+  RAASummaryLeg->AddEntry(gme,"OO (5.36 TeV)","fp"); 
+  if(doNeNe) RAASummaryLeg->AddEntry(NeNe,"NeNe (5.36 TeV)","fp");
   RAASummaryLeg->AddEntry(PbPb,"PbPb (5.02 TeV)","fp");
   RAASummaryLeg->AddEntry(pPb,"pPb (5.02 TeV)","fp");
   RAASummaryLeg->AddEntry(XeXe,"XeXe (5.44 TeV, 0-80%)","fp");
@@ -566,13 +615,20 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   //lumi_sqrtS = "0.5 nb^{-1} (5.36 TeV OO), 1.07 pb^{-1} (5.36 TeV pp)";
   //writeExtraText = true;  
   //extraText  = "Preliminary";
-  CMS_lumi( canv2, 0,11);
+  if(!doNeNe) CMS_lumi( canv2, 0,11);
+  if(doNeNe) CMS_lumi( canv2, 13,11);
   
   canv2->RedrawAxis();
 
+  if(!doNeNe){
   canv2->SaveAs("plots/Figure_002.pdf");
   canv2->SaveAs("plots/Figure_002.png");
   canv2->SaveAs("plots/Figure_002.C");
+  } else {
+  canv2->SaveAs("plots/Figure_002_NeNe.pdf");
+  canv2->SaveAs("plots/Figure_002_NeNe.png");
+  canv2->SaveAs("plots/Figure_002_NeNe.C");
+  }
 
   //plot with other datasets
   TH1D * ppSpecD2 = new TH1D("specDummy2","",3,0.4,500);
@@ -601,6 +657,10 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   b2->SetFillStyle(1001);
   b2->SetFillColorAlpha(TColor::GetColor("#5790fc"),0.5);
   b2->Draw("same");
+  TBox * b2NeNe = new TBox(0.45,1-normUncert,0.5, 1+normUncert);
+  b2NeNe->SetFillStyle(1001);
+  b2NeNe->SetFillColorAlpha(kViolet-9,0.8);
+  if(doNeNe) b2NeNe->Draw("same");
   TBox * b2pPb = new TBox(0.55,1-pPbnormUncert,0.6, 1+pPbnormUncert);
   b2pPb->SetFillStyle(1001);
   b2pPb->SetFillColorAlpha(kGreen+2,0.5);
@@ -638,15 +698,26 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
             line->Draw("same");
         }
     }
+  if(doNeNe){
+    NeNeCut->Draw("PZs s=0.01 same;2 s=1"); 
+    NeNeCut->Draw("PZs s=0.01 same;X");
+  }
 
-  CMS_lumi( canv2, 0,11);
+  if(!doNeNe) CMS_lumi( canv2, 0,11);
+  if(doNeNe) CMS_lumi( canv2, 13,11);
   specLeg->Draw("same");
   RAASummaryLeg->Draw("same");
   canv2->RedrawAxis();
 
+  if(!doNeNe){
   canv2->SaveAs("plots/Figure_002_compare.pdf");
   canv2->SaveAs("plots/Figure_002_compare.png");
   canv2->SaveAs("plots/Figure_002_compare.C");
+   } else {
+  canv2->SaveAs("plots/Figure_002_compare_NeNe.pdf");
+  canv2->SaveAs("plots/Figure_002_compare_NeNe.png");
+  canv2->SaveAs("plots/Figure_002_compare_NeNe.C");
+  }
 
   //plot with no-quenching baselines
   //redraw result

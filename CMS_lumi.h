@@ -33,6 +33,7 @@ TString lumi_13TeV = "20.1 fb^{-1}";
 TString lumi_8TeV  = "19.7 fb^{-1}";
 TString lumi_7TeV  = "5.1 fb^{-1}";
 TString lumi_sqrtS = "6.0 nb^{-1} (OO), 1.0 pb^{-1} (pp), 5.36 TeV";
+TString lumi_sqrtSNeNe = "0.8 nb^{-1} (NeNe), 6.0 nb^{-1} (OO), 5.36 TeV";
 
 bool drawLogo      = false;
 
