@@ -9,9 +9,9 @@
 #include "TGraphAsymmErrors.h"
 #include "TBox.h"
 
-void RAA(){
+void RAA_nopPb(){
 
-  bool doNeNe = false;
+  bool doNeNe = true;
 
   //NeNe
   TFile * NeNeRAA = TFile::Open("Models/NeNeRAA/NeNeOverPPRatio.root","read");
@@ -425,7 +425,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   //dummy histogram to define the frame
   //TH1D * ppSpecD = new TH1D("specDummy1","",3,0.4,500);
   TH1D * ppSpecD = new TH1D("specDummy1","",3,1.5,140);
-  ppSpecD->GetYaxis()->SetTitle("Charged particle R_{AA}");
+  ppSpecD->GetYaxis()->SetTitle("R_{AA}");
   ppSpecD->GetYaxis()->SetTitleOffset(1.4);
   ppSpecD->GetYaxis()->SetTitleSize(0.045);
   ppSpecD->GetYaxis()->SetLabelSize(0.04);
@@ -448,7 +448,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   b->SetFillColorAlpha(TColor::GetColor("#5790fc"),0.5);
   b->Draw("same");
 
-  TBox * bNeNe = new TBox(1.6,1-normUncert,1.7, 1+normUncert);
+  TBox * bNeNe = new TBox(1.8,1-normUncert,1.9, 1+normUncert);
   bNeNe->SetFillStyle(1001);
   bNeNe->SetFillColorAlpha(kViolet-9,0.8);
   if(doNeNe) bNeNe->Draw("same");
@@ -456,7 +456,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   TBox * bpPb = new TBox(1.8,1-pPbnormUncert,1.9, 1+pPbnormUncert);
   bpPb->SetFillStyle(1001);
   bpPb->SetFillColorAlpha(kGreen+2,0.5);
-  bpPb->Draw("same");
+  //bpPb->Draw("same");
   TBox * bPbPb = new TBox(1.9,1-PbPbnormUncertU,2.0, 1+PbPbnormUncertD);
   bPbPb->SetFillStyle(1001);
   bPbPb->SetFillColorAlpha(kOrange,0.5);
@@ -538,8 +538,8 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   TGraphMultiErrors * pPbCut = (TGraphMultiErrors*) pPb->Clone("pPbCut");
   for(int i = 0; i<13; i++) pPbCut->SetPoint(i,0,0);
   for(int i = 32; i<33; i++) pPbCut->SetPoint(i,0,0);
-  pPbCut->Draw("PZs s=0.01 same;2 s=1");
-  pPbCut->Draw("PZs s=0.01 same;X");
+  //pPbCut->Draw("PZs s=0.01 same;2 s=1");
+  //pPbCut->Draw("PZs s=0.01 same;X");
 
   TGraphMultiErrors * NeNeCut = (TGraphMultiErrors*) NeNe->Clone("NeNeCut");
   NeNeCut->Print("All");
@@ -588,7 +588,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   //raa->Draw("p same");
 
   //legends
-  TLegend * specLeg = new TLegend(0.70,0.2,0.95,0.33);
+  TLegend * specLeg = new TLegend(0.75,0.2,0.95,0.25);
   specLeg->SetTextFont(42);
   specLeg->SetTextSize(0.05);
   specLeg->SetFillStyle(0);
@@ -607,7 +607,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   RAASummaryLeg->AddEntry(gme,"OO (5.36 TeV)","fp"); 
   if(doNeNe) RAASummaryLeg->AddEntry(NeNe,"NeNe (5.36 TeV)","fp");
   RAASummaryLeg->AddEntry(PbPb,"PbPb (5.02 TeV)","fp");
-  RAASummaryLeg->AddEntry(pPb,"pPb (5.02 TeV)","fp");
+  //RAASummaryLeg->AddEntry(pPb,"pPb (5.02 TeV)","fp");
   RAASummaryLeg->AddEntry(XeXe,"XeXe (5.44 TeV, 0-80%)","fp");
   RAASummaryLeg->Draw("same");
 
@@ -632,7 +632,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
 
   //plot with other datasets
   TH1D * ppSpecD2 = new TH1D("specDummy2","",3,0.4,500);
-  ppSpecD2->GetYaxis()->SetTitle("Charged particle R_{AA}");
+  ppSpecD2->GetYaxis()->SetTitle("R_{AA}");
   ppSpecD2->GetYaxis()->SetTitleOffset(1.4);
   ppSpecD2->GetYaxis()->SetTitleSize(0.045);
   ppSpecD2->GetYaxis()->SetLabelSize(0.04);
@@ -723,7 +723,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   //redraw result
   
   TH1D * ppSpecD3 = new TH1D("specDummy3","",3,2.2,120);
-  ppSpecD3->GetYaxis()->SetTitle("Charged particle R_{AA}");
+  ppSpecD3->GetYaxis()->SetTitle("R_{AA}");
   ppSpecD3->GetYaxis()->SetTitleOffset(1.4);
   ppSpecD3->GetYaxis()->SetTitleSize(0.045);
   ppSpecD3->GetYaxis()->SetLabelSize(0.04);
@@ -770,7 +770,6 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   specLegNoQ->SetFillStyle(0);
   specLegNoQ->Draw("same"); 
 
-  specLeg->AddEntry(gme,"Data","pf");
   specLeg->Draw("same"); 
   CMS_lumi( canv2, 0,11);
   canv2->RedrawAxis();
