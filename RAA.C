@@ -172,6 +172,15 @@ void RAA(){
   huss_Band->SetLineColor(kGreen+1);
   huss_Band->SetMarkerStyle(0);
 
+
+  //Faraday/Horowitz
+  TFile * FH_File = TFile::Open("Models/ColeFaraday/MinBias.root","read");
+  TGraphAsymmErrors * FHModel = (TGraphAsymmErrors*) FH_File->Get("OOMinBias");
+  FHModel->SetLineColor(kGray+1);
+  FHModel->SetLineWidth(7);
+  FHModel->SetFillColorAlpha(kGray+1,0.3);
+
+
   //Zhakarov model
   TGraph* z1, *z2, *z3;
   {
@@ -206,7 +215,10 @@ void RAA(){
     0.903063834, 0.911045194, 0.918154716, 0.924346566, 0.929598093,
     0.933848977, 0.937152386, 0.939622700, 0.941366196, 0.942614496
 };
+double y1_vals_no_mQGP_err[] = {5.65196909E-02, 5.46006411E-02, 5.28079569E-02, 5.11432812E-02, 4.95974198E-02, 4.75600585E-02, 4.55311239E-02, 4.35237847E-02, 4.15414236E-02, 3.95958647E-02, 3.76793481E-02, 3.58002745E-02, 3.39683518E-02, 3.21911499E-02, 3.04689389E-02, 2.88200863E-02, 2.72270013E-02, 2.56951526E-02, 2.42172908E-02, 2.27938965E-02, 2.14170907E-02, 2.00739782E-02, 1.87592655E-02, 1.74661949E-02, 1.61859952E-02, 1.49267530E-02, 1.36831282E-02, 1.24585871E-02, 1.12636620E-02, 1.01051079E-02};
+double y1_vals_w_mQGP_err[] = {3.75266708E-02, 3.62214185E-02, 3.50645743E-02, 3.40077877E-02, 3.30388583E-02, 3.17770801E-02, 3.05360388E-02, 2.93220039E-02, 2.81291772E-02, 2.69590933E-02, 2.57996451E-02, 2.46677063E-02, 2.35810261E-02, 2.25466639E-02, 2.15602629E-02, 2.06079278E-02, 1.96799003E-02, 1.87767949E-02, 1.78891327E-02, 1.70069095E-02, 1.61207523E-02, 1.52137931E-02, 1.42793022E-02, 1.33073712E-02, 1.22892782E-02, 1.12298597E-02, 1.01352436E-02, 9.02486593E-03, 7.92523474E-03, 6.89257216E-03};
   
+
   const int n = sizeof(x_vals) / sizeof(double);
   z1 = new TGraph(n, x_vals, y1_vals_w_mQGP);
   z3 = new TGraph(n, x_vals, y1_vals_no_mQGP);
@@ -235,9 +247,34 @@ void RAA(){
     XZ_Central->SetLineWidth(7);
 
     XZ_Band = new TGraphAsymmErrors(n, x, y, nullptr, nullptr, yLowErr, yHighErr);
-    XZ_Band->SetFillColorAlpha(kViolet+1, 0.4); // transparent fill
+    XZ_Band->SetFillColorAlpha(kViolet+1, 0.15); // transparent fill
     XZ_Band->SetLineColor(kViolet+1);
     XZ_Band->SetMarkerStyle(0);
+  }
+
+  //Xie & Zhang model
+  TGraph* XZ_Central_CNM;
+  TGraphAsymmErrors* XZ_Band_CNM;
+  {
+    double x[] = { 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100 };
+    double y[] = { 0.9088, 0.9816, 1.0050, 1.0148, 1.0377, 1.0358, 1.0436, 1.0546, 1.0504, 1.0379, 1.0543, 1.0483, 1.0435, 1.0451, 1.0486, 1.0430, 1.0475, 1.0427, 1.0407, 1.0476 };
+    double yLowErr[] = { 
+    0.1596, 0.0713, 0.0420, 0.0222, 0.0572, 0.0404, 0.0701, 0.0917, 
+    0.0773, 0.0623, 0.0739, 0.0642, 0.0495, 0.0640, 0.0650, 0.0594, 
+    0.0737, 0.0614, 0.0647, 1.0476-0.9796};
+    double yHighErr[] = { 0.2021, 0.0726, 0.0423, 0.0573, 0.0338, 0.0568, 0.0486, 0.0273, 
+    0.0599, 0.0885, 0.0460, 0.0582, 0.0763, 0.0671, 0.0550, 0.0645, 
+    0.0587, 0.0634, 0.0719, 1.1038-1.0476};
+ 
+    const int n = sizeof(x) / sizeof(double);
+    XZ_Central_CNM = new TGraph(n, x, y); 
+    XZ_Central_CNM->SetLineColor(kViolet);
+    XZ_Central_CNM->SetLineWidth(7);
+
+    XZ_Band_CNM = new TGraphAsymmErrors(n, x, y, nullptr, nullptr, yLowErr, yHighErr);
+    XZ_Band_CNM->SetFillColorAlpha(kViolet+1, 0.15); // transparent fill
+    XZ_Band_CNM->SetLineColor(kViolet+1);
+    XZ_Band_CNM->SetMarkerStyle(0);
   }
 
   //CUJET
@@ -748,8 +785,13 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   b3->Draw("same");
   gme->Draw("PZs s=0.01 same;2 s=1");
 
+  XZ_Band_CNM->Draw("3 same");
+
+
   AM_Band->Draw("3 same");
   AM_PDFBand->Draw("3 same");
+    
+  XZ_Central_CNM->Draw("L same");
   AM_Central->Draw("L same");
 
   z2->Draw("same");
@@ -760,13 +802,14 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   l3->Draw("same");
   gme->Draw("PZs s=0.01 same;X");
 
-  TLegend * specLegNoQ = new TLegend(0.4,0.75,0.9,0.9);
+  TLegend * specLegNoQ = new TLegend(0.38,0.7,0.83,0.9);
   specLegNoQ->SetTextFont(42);
   specLegNoQ->SetTextSize(0.03);
   specLegNoQ->SetFillStyle(0);
   specLegNoQ->AddEntry((TObject*)0,"Baseline models (no energy loss)",""); 
   specLegNoQ->AddEntry(AM_Central,"NLO pQCD + EPPS21 (Huss et al.)","l"); 
   specLegNoQ->AddEntry(z2,"LO pQCD + EPS09 (Zakharov)","l"); 
+  specLegNoQ->AddEntry(XZ_Central_CNM,"NLO pQCD + EPPS16 (Xie and Zhang)","lf");
   specLegNoQ->SetFillStyle(0);
   specLegNoQ->Draw("same"); 
 
@@ -790,6 +833,8 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   XZ_Band->Draw("3 same");
   XZ_Central->Draw("L same");
 
+  FHModel->Draw("3 L same");
+
   huss_Band->Draw("3 same");
   huss_Central->Draw("L same");
 
@@ -799,7 +844,7 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   z1->Draw("same");
   z3->Draw("same");
 
-  TLegend * specLegWQ = new TLegend(0.4,0.6,0.9,0.9);
+  TLegend * specLegWQ = new TLegend(0.38,0.6,0.83,0.9);
   specLegWQ->SetTextFont(42);
   specLegWQ->SetTextSize(0.03);
   specLegWQ->SetFillStyle(0);
@@ -807,8 +852,9 @@ double yNLO_errPDFHigh[] = { 0.0997576, 0.0927672, 0.086447, 0.080687, 0.076264,
   specLegWQ->AddEntry(huss_Central,"BDMPS-Z (Huss et al.)","lf"); 
   specLegWQ->AddEntry(z1,"LCPI + mQGP in pp (Zakharov)","l"); 
   specLegWQ->AddEntry(z3,"LCPI + no mQGP in pp (Zakharov)","l"); 
-  specLegWQ->AddEntry(XZ_Central,"pQCD+Bayesian #hat{q} (Xie and Zhang)","lf"); 
+  specLegWQ->AddEntry(XZ_Central,"Bayesian #hat{q} (Xie and Zhang)","lf"); 
   specLegWQ->AddEntry(CUJET_Central,"CUJET/CIBJET","lf"); 
+  specLegWQ->AddEntry(FHModel,"(Faraday et al.)","l");
   specLegWQ->SetFillStyle(0);
   specLegWQ->Draw("same"); 
 
